@@ -30,6 +30,7 @@ exports.handler = async (event) => {
         if (!token) return sendResponse({ message: 'UnAuthorized' }, 401)
 
         if (!event.body) return sendResponse({ message: 'Nothing to update here' }, 419)
+        event.body = JSON.parse(event.body)
 
         const userInfoHeaders = { Authorization: "Bearer " + token };
 
@@ -88,4 +89,3 @@ exports.handler = async (event) => {
         return sendResponse({ message: 'Internal Server Error' }, 500)
     }
 };
-
