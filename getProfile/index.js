@@ -3,11 +3,18 @@ const axios = require('axios')
 const { PutItemCommand, DynamoDBClient, GetItemCommand } = require('@aws-sdk/client-dynamodb');
 const { unmarshall } = require("@aws-sdk/util-dynamodb");
 
-const sendResponse = (body = {}, statusCode = 400) => ({ statusCode, body: JSON.stringify(body) })
+const sendResponse = (body = {}, statusCode = 400) => ({
+    statusCode, body: JSON.stringify(body), headers: {
+        "Access-Control-Allow-Origin": "*", // Required for CORS support to work
+        "Access-Control-Allow-Credentials": true, // Required for cookies, authorization headers with HTTPS
+        "Access-Control-Allow-Headers": "*"
+    }
+})
 
 exports.handler = async (event) => {
     try {
         let token = '';
+        let idToken = '';
 
         const awsConfig = {
             region: process.env.AWS_REGION_CUSTOM,
@@ -45,6 +52,7 @@ exports.handler = async (event) => {
             }
 
             token = res?.data?.access_token;
+            idToken = res?.data?.id_token;
         } else return sendResponse({ message: 'UnAuthorized, token or code missing' }, 401)
 
         const userInfoHeaders = {
@@ -83,6 +91,8 @@ exports.handler = async (event) => {
         getUserData.Item = unmarshall(getUserData.Item);
 
         if (event?.queryStringParameters?.code) getUserData.Item.token = token
+        if (event?.queryStringParameters?.code) getUserData.Item.idToken = idToken
+
         return sendResponse({ data: getUserData.Item, message: 'User Data fetched successfully' }, 200)
     } catch (error) {
         console.log(error)
