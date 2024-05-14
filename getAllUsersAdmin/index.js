@@ -51,6 +51,7 @@ exports.handler = async (event) => {
         return sendResponse({ data: { result: response.Items.map((ele) => unmarshall(ele)), total: response.Count, nextToken: response?.LastEvaluatedKey?.userId?.S }, message: 'User Data fetched successfully' }, 200)
     } catch (error) {
         console.log(error);
+        if (error?.response?.status) return sendResponse({ message: 'Unauthorized' }, 401)
         return sendResponse({ message: 'Internal Server Error' }, 500)
     }
 };

@@ -44,6 +44,8 @@ exports.handler = async (event) => {
         return sendResponse({ data: userData, message: 'Admin Data fetched successfully' }, 200)
     } catch (error) {
         console.log({ error })
+        if (error?.response?.status) return sendResponse({ message: 'Unauthorized' }, 401)
+
         return sendResponse({ message: 'Internal Server Error' }, 500)
     }
 };

@@ -11,14 +11,6 @@ const sendResponse = (body = {}, statusCode = 400) => ({
     }
 });
 
-const schema = {
-    userName: { type: 'string' },
-    name: { type: 'string' },
-    height: { type: 'number' },
-    gender: { type: 'enum', enum: ['m', 'f', 'o'] },
-    dob: { type: 'string' }
-};
-
 exports.handler = async (event) => {
     try {
         const token = event?.headers?.token;
@@ -59,16 +51,8 @@ exports.handler = async (event) => {
         const getUserData = await client.send(getCommand);
         if (!getUserData.Item) return sendResponse({ message: 'User not found' }, 400);
 
-        const updateObj = {}
-
-        if (Object.keys(event.body).length) {
-            const objectKeysSchema = Object.keys(schema)
-            Object.keys(event.body).forEach((ele) => {
-                if (objectKeysSchema.includes(ele)) {
-                    if (schema[ele]?.type === 'enum' && !schema[ele]?.enum?.includes(event.body[ele])) event.body[ele] = '';
-                    updateObj[ele] = event?.body[ele]
-                }
-            })
+        const updateObj = {
+            profilePicture: event?.body?.profilePicture
         }
 
         if (!updateObj) return sendResponse({ message: 'Nothing to update here' }, 419)
@@ -91,9 +75,8 @@ exports.handler = async (event) => {
         return sendResponse({ message: 'User Data fetched successfully', data: unmarshall(updateClient.Attributes) }, 200)
 
     } catch (error) {
-        console.log({ error })
         if (error?.response?.status) return sendResponse({ message: 'Unauthorized' }, 401)
-
+        console.log({ error })
         return sendResponse({ message: 'Internal Server Error' }, 500)
     }
 };
